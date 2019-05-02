@@ -17,7 +17,11 @@ export default class User extends Component {
             posts: [],
             expand: false,
             postId: "",
-            postIndex: ""
+            postIndex: "",
+            title: "",
+            body: "",
+            editPostId: "",
+            editPost: false
         };
     }
 
@@ -43,50 +47,191 @@ export default class User extends Component {
                 console.log(error);
             });
     };
+
+    addPost = e => {
+        e.preventDefault();
+
+        axios
+            .post(`${process.env.REACT_APP_API_URL}/posts`)
+            .then(data => {
+                console.log(data);
+            })
+            .catch(error => {
+                console.log(error);
+            });
+
+        this.setState({
+            name: "",
+            email: "",
+            body: ""
+        });
+    };
+
+    handleChange = event => {
+        this.setState({ [event.target.name]: event.target.value });
+    };
+
+    deletePost = (postId, key) => {
+        axios
+            .delete(`${process.env.REACT_APP_API_URL}/posts/${postId}`)
+            .then(data => {
+                this.state.posts.splice(key, 1);
+                this.setState({ posts: this.state.posts });
+            })
+            .catch(error => {
+                console.log(error);
+            });
+    };
+
+    editPost = postId => {
+        this.setState({ editPost: true, editPostId: postId });
+    };
+
+    submit = e => {
+        e.preventDefault();
+
+        axios
+            .put(
+                `${process.env.REACT_APP_API_URL}/posts/${
+                    this.state.editPostId
+                }`
+            )
+            .then(data => {
+                this.setState({ editPost: false });
+            })
+            .catch(error => {
+                console.log(error);
+            });
+
+        this.setState({
+            title: "",
+            body: ""
+        });
+    };
     render() {
         return (
             <Grid container>
                 <Grid item md={6}>
-                    <p
+                    <h3
                         style={{
                             fontFamily: "monospace",
                             textAlign: "center"
                         }}
                     >
                         {this.props.name} Post
-                    </p>
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell align="right">Title List</TableCell>
-                                <TableCell align="right">Body List</TableCell>
-                                <TableCell align="right">Comment</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {this.state.posts.map(
-                                ({ userId, id, title, body }, key) => (
-                                    <TableRow key={id}>
+                    </h3>
+                    <form onSubmit={this.addPost}>
+                        <input
+                            type="text"
+                            placeholder="Name"
+                            name="title"
+                            onChange={this.handleChange}
+                            value={this.state.title}
+                        />
+                        <input
+                            type="text"
+                            placeholder="Body"
+                            name="body"
+                            onChange={this.handleChange}
+                            value={this.state.body}
+                        />
+                        <Button type="submit">Add</Button>
+                    </form>
+                    <form onSubmit={this.submit}>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell align="right">
+                                        Title List
+                                    </TableCell>
+                                    <TableCell align="right">
+                                        Body List
+                                    </TableCell>
+                                    <TableCell align="right">Comment</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {this.state.editPost === true ? (
+                                    <TableRow>
                                         <TableCell component="th" scope="row">
-                                            {title}
+                                            <input
+                                                type="text"
+                                                placeholder="Name"
+                                                name="title"
+                                                style={{ border: "none" }}
+                                                onChange={this.handleChange}
+                                                value={this.state.title}
+                                            />
                                         </TableCell>
                                         <TableCell align="right">
-                                            {body}
+                                            <input
+                                                type="text"
+                                                placeholder="Body"
+                                                name="body"
+                                                style={{
+                                                    border: "none"
+                                                }}
+                                                onChange={this.handleChange}
+                                                value={this.state.body}
+                                            />
                                         </TableCell>
                                         <TableCell align="right">
-                                            <Button
-                                                onClick={() =>
-                                                    this.expandPost(id, key)
-                                                }
-                                            >
-                                                Comment
-                                            </Button>
+                                            {this.state.editPost === true && (
+                                                <Button type="submit">
+                                                    Submit
+                                                </Button>
+                                            )}
                                         </TableCell>
                                     </TableRow>
-                                )
-                            )}
-                        </TableBody>
-                    </Table>
+                                ) : (
+                                    this.state.posts.map(
+                                        ({ userId, id, title, body }, key) => (
+                                            <TableRow key={id}>
+                                                <TableCell
+                                                    component="th"
+                                                    scope="row"
+                                                >
+                                                    {title}
+                                                </TableCell>
+                                                <TableCell align="right">
+                                                    {body}
+                                                </TableCell>
+                                                <TableCell align="right">
+                                                    <Button
+                                                        onClick={() =>
+                                                            this.editPost(id)
+                                                        }
+                                                    >
+                                                        Edit
+                                                    </Button>
+                                                    <Button
+                                                        onClick={() =>
+                                                            this.expandPost(
+                                                                id,
+                                                                key
+                                                            )
+                                                        }
+                                                    >
+                                                        Comment
+                                                    </Button>
+                                                    <Button
+                                                        onClick={() =>
+                                                            this.deletePost(
+                                                                id,
+                                                                key
+                                                            )
+                                                        }
+                                                    >
+                                                        Delete
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        )
+                                    )
+                                )}
+                            </TableBody>
+                        </Table>
+                    </form>
                 </Grid>
                 <Grid item md={6}>
                     {this.state.expand === true && (

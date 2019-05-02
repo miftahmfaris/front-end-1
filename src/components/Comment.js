@@ -15,7 +15,12 @@ export default class User extends Component {
             comments: [],
             expand: false,
             postId: "",
-            commentId: ""
+            commentId: "",
+            editComment: false,
+            editCommentId: "",
+            name: "",
+            email: "",
+            body: ""
         };
     }
 
@@ -49,46 +54,193 @@ export default class User extends Component {
                 console.log(error);
             });
     };
+
+    editField = commentId => {
+        this.setState({ editComment: true, editCommentId: commentId });
+    };
+
+    submit = e => {
+        e.preventDefault();
+
+        axios
+            .put(
+                `${process.env.REACT_APP_API_URL}/comments/${
+                    this.state.editCommentId
+                }`
+            )
+            .then(data => {
+                this.setState({ editComment: false });
+            })
+            .catch(error => {
+                console.log(error);
+            });
+
+        this.setState({
+            name: "",
+            email: "",
+            body: ""
+        });
+    };
+
+    addComment = e => {
+        e.preventDefault();
+
+        axios
+            .post(`${process.env.REACT_APP_API_URL}/comments`)
+            .then(data => {
+                console.log(data);
+            })
+            .catch(error => {
+                console.log(error);
+            });
+
+        this.setState({
+            name: "",
+            email: "",
+            body: ""
+        });
+    };
+
+    handleChange = event => {
+        this.setState({ [event.target.name]: event.target.value });
+    };
     render() {
         return (
             <div>
-                <p
+                <h3
                     style={{
                         fontFamily: "monospace",
                         textAlign: "center"
                     }}
                 >
-                    Number {this.props.postIndex} {this.props.name} Comment
-                </p>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell align="right">Name</TableCell>
-                            <TableCell align="right">Email</TableCell>
-                            <TableCell align="right">Body</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {this.state.comments.map(
-                            ({ postId, id, name, email, body }, key) => (
-                                <TableRow key={id}>
+                    Number {this.props.postIndex + 1} {this.props.name} Comment
+                </h3>
+                <form onSubmit={this.addComment}>
+                    <input
+                        type="text"
+                        placeholder="Name"
+                        name="name"
+                        onChange={this.handleChange}
+                        value={this.state.name}
+                    />
+                    <input
+                        type="email"
+                        placeholder="Email"
+                        name="email"
+                        onChange={this.handleChange}
+                        value={this.state.email}
+                    />
+                    <input
+                        type="text"
+                        placeholder="Body"
+                        name="body"
+                        onChange={this.handleChange}
+                        value={this.state.body}
+                    />
+                    <Button type="submit">Add</Button>
+                </form>
+                <form onSubmit={this.submit}>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell align="right">Name</TableCell>
+                                <TableCell align="right">Email</TableCell>
+                                <TableCell align="right">Body</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {this.state.editComment === true ? (
+                                <TableRow>
                                     <TableCell component="th" scope="row">
-                                        {name}
+                                        <input
+                                            type="text"
+                                            placeholder="Name"
+                                            name="name"
+                                            style={{ border: "none" }}
+                                            onChange={this.handleChange}
+                                            value={this.state.name}
+                                        />
                                     </TableCell>
-                                    <TableCell align="right">{email}</TableCell>
-                                    <TableCell align="right">{body}</TableCell>
                                     <TableCell align="right">
-                                        <Button
-                                            onClick={() => this.delete(id, key)}
-                                        >
-                                            Delete
-                                        </Button>
+                                        <input
+                                            type="email"
+                                            placeholder="Email"
+                                            name="email"
+                                            style={{
+                                                border: "none"
+                                            }}
+                                            onChange={this.handleChange}
+                                            value={this.state.email}
+                                        />
+                                    </TableCell>
+                                    <TableCell align="right">
+                                        <input
+                                            type="text"
+                                            placeholder="Body"
+                                            name="body"
+                                            style={{
+                                                border: "none"
+                                            }}
+                                            onChange={this.handleChange}
+                                            value={this.state.body}
+                                        />
+                                    </TableCell>
+                                    <TableCell align="right">
+                                        {this.state.editComment === true && (
+                                            <Button type="submit">
+                                                Submit
+                                            </Button>
+                                        )}
                                     </TableCell>
                                 </TableRow>
-                            )
-                        )}
-                    </TableBody>
-                </Table>
+                            ) : (
+                                this.state.comments.map(
+                                    (
+                                        { postId, id, name, email, body },
+                                        key
+                                    ) => (
+                                        <TableRow key={id}>
+                                            <TableCell
+                                                component="th"
+                                                scope="row"
+                                            >
+                                                {name}
+                                            </TableCell>
+                                            <TableCell align="right">
+                                                {email}
+                                            </TableCell>
+                                            <TableCell align="right">
+                                                {body}
+                                            </TableCell>
+                                            <TableCell align="right">
+                                                <Button
+                                                    onClick={() =>
+                                                        this.editField(id)
+                                                    }
+                                                >
+                                                    Edit
+                                                </Button>
+                                                <Button
+                                                    onClick={() =>
+                                                        this.delete(id, key)
+                                                    }
+                                                >
+                                                    Delete
+                                                </Button>
+                                                {this.state.editComment ===
+                                                    true && (
+                                                    <Button type="submit">
+                                                        Submit
+                                                    </Button>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                )
+                            )}
+                        </TableBody>
+                    </Table>
+                </form>
             </div>
         );
     }
