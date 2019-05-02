@@ -44,7 +44,11 @@ export default class User extends Component {
             .catch(error => {
                 console.log(error);
             });
-        this.setState({ expandAlbum: !this.state.expandAlbum, id: id });
+        this.setState({
+            expandAlbum: !this.state.expandAlbum,
+            id: id,
+            expand: !this.state.expand
+        });
     };
 
     componentWillMount = () => {
