@@ -44,7 +44,7 @@ export default class User extends Component {
                         textAlign: "center"
                     }}
                 >
-                    Number {this.props.postIndex + 1} {this.props.name} Comment
+                    Number {this.props.postIndex + 1} {this.props.name} Album
                 </h3>
                 <Table>
                     <TableHead>
