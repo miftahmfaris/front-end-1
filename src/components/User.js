@@ -8,6 +8,7 @@ import TableRow from "@material-ui/core/TableRow";
 import Button from "@material-ui/core/Button";
 import Grid from "@material-ui/core/Grid";
 import Post from "./Post";
+import Album from "./Album";
 
 export default class User extends Component {
     constructor(props) {
@@ -16,6 +17,7 @@ export default class User extends Component {
         this.state = {
             user: [],
             expand: false,
+            expandAlbum: false,
             id: "",
             name: ""
         };
@@ -31,6 +33,18 @@ export default class User extends Component {
                 console.log(error);
             });
         this.setState({ expand: !this.state.expand, id: id });
+    };
+
+    expandAlbum = id => {
+        axios
+            .get(`${process.env.REACT_APP_API_URL}/users/${id}`)
+            .then(({ data }) => {
+                this.setState({ name: data.name });
+            })
+            .catch(error => {
+                console.log(error);
+            });
+        this.setState({ expandAlbum: !this.state.expandAlbum, id: id });
     };
 
     componentWillMount = () => {
@@ -50,11 +64,7 @@ export default class User extends Component {
                             <TableRow>
                                 <TableCell>Name</TableCell>
                                 <TableCell align="right">User List</TableCell>
-                                <TableCell align="right">Post List</TableCell>
                                 <TableCell align="right">Album List</TableCell>
-                                <TableCell align="right">
-                                    Phone Number
-                                </TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -68,14 +78,28 @@ export default class User extends Component {
                                             Post
                                         </Button>
                                     </TableCell>
+                                    <TableCell align="right">
+                                        <Button
+                                            onClick={() => this.expandAlbum(id)}
+                                        >
+                                            Album
+                                        </Button>
+                                    </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
                     </Table>
                 </Grid>
                 <Grid item md={12}>
-                    {this.state.expand === true && (
+                    {this.state.expand === true ? (
                         <Post userId={this.state.id} name={this.state.name} />
+                    ) : (
+                        this.state.expandAlbum === true && (
+                            <Album
+                                userId={this.state.id}
+                                name={this.state.name}
+                            />
+                        )
                     )}
                 </Grid>
             </Grid>
